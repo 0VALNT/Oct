@@ -1,3 +1,4 @@
+import re
 def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, replacement:str ='')->list:#text- текст в котором ищем; word- слово которое ищем; num_of_Err- количество допустимых ошибок; Ignore_case- игнорироватьгнорировать ли регистр (если True то игнорировать); replacement- если его указать, то все найденные слова будут заменены на replacement
     counter=0
     if Ignore_case:#Игнорировать ли регистр
@@ -9,7 +10,7 @@ def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, re
     if text[len(text)-1]!='.': #Добовляет в конец точку, если её нет для работы split
         text+='.'
     len_of_word=len(word)    #Делит текст на предложения
-    offers=text.split('.')
+    offers=re.split(r'[.\n?]+', text)
     for i in offers: #Идёт по всем предложениям
         words=i.split()
         for u in words:#Идёт по словам в предложениии
@@ -67,7 +68,7 @@ def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, re
 
 # My family is quite big. It consists of my mother, father, my three siblings and our cat Bob. Well, most people would say that a pet is not a family member but no one in our family would agree with that. We all love Bob and consider him a family member.
 
-# My mother’s name is Anna, she is a teacher. She has been working in our local school for a long time. My mom teaches History and Social Studies, the subjects that I really love. She loves reading very much, and her favorite book is “A Street Cat Named Bob” by James Bowen. If you are familiar with the book, you can guess why she named our ginger cat Bob.
+# My mother’s name is Anna, she is a teacher. She has been working in our local school for a long time. My mom teaches History and Social Studies, the subjects that I really love! She loves reading very much, and her favorite book is “A Street Cat Named Bob” by James Bowen. If you are familiar with the book, you can guess why she named our ginger cat Bob.
 
 # My father’s name is Igor. He is a little older than mom and he used to be a police officer. He retired at a quite young age and has been running his own business ever since. He has a small coffee shop and a candy store. To be honest, I don’t know much about his business, but he says it is doing well.
 
