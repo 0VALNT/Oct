@@ -1,5 +1,5 @@
 from re import split
-def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, replacement:str ='', repair:bool=False)->str:#text- текст в котором ищем; word- слово которое ищем; num_of_Err- количество допустимых ошибок; Ignore_case- игнорироватьгнорировать ли регистр (если True то игнорировать); replacement- если его указать, то все найденные слова будут заменены на replacement; Если repair = True то все найденные слова с ошибками юудут заменены на искомое слово (не рекомендуется при допустимом количесте ошибок>30% от длины слова)
+def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, replacement:str ='', repair:bool=False,part_of_word:bool=False)->str:#text- текст в котором ищем; word- слово которое ищем; num_of_Err- количество допустимых ошибок; Ignore_case- игнорироватьгнорировать ли регистр (если True то игнорировать); replacement- если его указать, то все найденные слова будут заменены на replacement; Если repair = True то все найденные слова с ошибками юудут заменены на искомое слово (не рекомендуется при допустимом количесте ошибок>30% от длины слова)
     copy_of_word=word
     counter=0 #счётчик правильности слова
     if repair and replacement=='' : #Если включена функция замены слов с ошибкой на правельное и отключена функция замены слова, то замена слова = самому слову
@@ -47,7 +47,7 @@ def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, re
                         result.append(sub_result[0:len(sub_result)-1]+'.')#Добовляет предложенииe в result и точку в конец
                 counter=0 #Обнуление счётчика
                 sub_result='' #Обнуление вспомогательного str
-            elif (len(u) - len_of_word)**2<=num_of_Err**2: #Это условие проходит если длинна слова не совподает на количесво ошибок или меньше
+            elif (len(u) - len_of_word)**2<=num_of_Err**2 or (part_of_word and len(u) > len_of_word): #Это условие проходит если длинна слова не совподает на количесво ошибок или меньше
                 difference=(len(u) - len_of_word)**2 #делает difference положительным
                 difference=int(difference**0.5) #делает difference положительным
                 u1=u[0:len(u)-difference] #Создаёт вспомогательную переменную содержащию текущиеслово урезанное до размеров искомого слова
@@ -61,9 +61,8 @@ def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, re
                     counter=sub_couter2
                 elif sub_couter1>sub_couter2:
                     counter=sub_couter1
-                if counter-abs(difference)>=len_of_word- num_of_Err:
+                if counter-abs(difference)>=len_of_word- num_of_Err or (part_of_word and len_of_word==counter):
                     if replacement=='':
-                        #print(u)
                         result.append(i)
                     elif replacement!='': #замена слова
                         for h in words: #идёт по словам в предложении и добовляет их в результат
@@ -72,14 +71,36 @@ def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, re
                             elif h==uo or h==uo+',' or h==uo+'.': # Если это искомое слово, то вместо него вставляется замена
                                 sub_result+=replacement+' '
                         result.append(sub_result[0:len(sub_result)-1]+'.')#Добовляет в результат предложение без последнего символа (он всегда пробел) и добовляет в конец точку (ранее мы её удалили для коректного поиска слова)
+                elif part_of_word and len(u) > len_of_word:
+                    for g in range(0, len(u)-len_of_word):
+                        u4=u[g:g+len_of_word]
+                        for g1 in range(0,len(word)):
+                            if u4[g1]==word[g1]:
+                                counter+=1
+                        if counter==len_of_word:
+                            break
+                        else:
+                            counter=0
+                    if counter==len_of_word:
+                        if replacement == '':
+                            result.append(i)
+                        elif replacement != '':  # замена слова
+                            for h in words:  # идёт по словам в предложении и добовляет их в результат
+                                if h != uo and h != uo + ',' and h != uo + '.':  # Проверяет не заменялимое ли это слово
+                                    sub_result+=h+' ' #Вы это читаете?
+                                elif h==uo or h==uo+',' or h==uo+'.': # Если это искомое слово, то вместо него вставляется замена
+                                    sub_result+=replacement+' '
+                            result.append(sub_result[0:len(sub_result)-1]+'.')#Добовляет в результат предложение без последнего символа (он всегда пробел) и добовляет в конец точку (ранее мы её удалили для коректного поиска слова)
                 elif counter-abs(difference)<len_of_word- num_of_Err: #Очень хитрый алгоритм, который находит cлово с отсутвующей буквой посреди слова
                     counter=0 #Обнуление счётчика
                     # print(u)
                     for j in range(1,len(u)+1): #Идёт по длине слова пропуская 1 букву
                         # print('u')
+                        rp = max(len(u), len_of_word)
                         for j2 in range(1,num_of_Err+1): #Идёт от 1 до количесва ошибок
                             u3=u[0:j]+' '*j2+u[j:len(u)] # Добовляет пробелы посреди слова, для того, чтобы прошла проверка если пользователь забыл символ посреди слова ("Солнце", "Сонце")
                             rp=max(len(u3),len_of_word)
+
                             ml=min(len_of_word, len(u3))# вычисляет минимальное слово, чтобы не выйти за границы
                             for o in range(ml): #идёт от 0 до длины минимального слова
                                 if word[o] == u3[o]:#сравнивает буквы в текущем слове и искомом
@@ -88,7 +109,7 @@ def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, re
                                 break
                             else:
                                 counter=0 #Если это слово не подходим то обнуляем счётчик
-                        if counter>=rp- num_of_Err:#если это то самое слова то выходим из цыкла
+                        if counter>=rp- num_of_Err:#если это то самое слово то выходим из цыкла
                             break
                     if counter>=rp- num_of_Err:#если это то записываем предложение в котором оно находится
                         if replacement=='':
@@ -116,3 +137,9 @@ def word_search(text: str, word: str,num_of_Err:int=0, Ignore_case:bool=True, re
         else:
             b+=1
     return final_result #Возврат списка предложений с искомым словом
+tex='''
+Новые творения участников Т-мастерской: живописные мухоморчики, открытки к поздравлению пап от юных художников и осенние  фоторамки с милыми совушками из воздушного пластилина. 
+
+Спасибо нашей умелице Ксении! фывмухфыв. asdмух'''
+
+print(word_search(tex,'Мух'))

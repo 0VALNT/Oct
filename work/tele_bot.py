@@ -1,12 +1,13 @@
 import telebot
 from algo_lib import *
-config=[0,True, '', False] #Настройки по умолчанию
+config=[0,True, '', False, False] #Настройки по умолчанию
 text=''
 word=''
 # Создаем экземпляр бота
 bot = telebot.TeleBot('7028322889:AAFlpNzeaWNOyVTPYvrIAJ2iWNL9QxYtMsI')
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
+    print(m.from_user)
     bot.send_message(m.chat.id, 'Это бот поисковик, напишите "/search" для поиска, "/setting" для настроек, "/my_setting" чтобы посмотреть мои настройки или "/rules" чтобы посмотреть предостережения при использовании этого бота')
 @bot.message_handler(commands=["rules"])
 def send_rules(m):
@@ -18,12 +19,13 @@ def get_text_messages(m, res=False):
     bot.register_next_step_handler(m, get_word_messages)
 def get_word_messages(m):
     global text
+    print(m.text)
     text=m.text
     bot.send_message(m.chat.id,"Введите слово которое будет искаться:")
     bot.register_next_step_handler(m, search)
 def search(m):
     word=m.text
-    bot.send_message(m.chat.id, word_search(text,word,config[0],config[1],config[2],config[3]))
+    bot.send_message(m.chat.id, word_search(text,word,config[0],config[1],config[2],config[3],config[4]))
 @bot.message_handler(commands=["my_setting"])
 def my_setting(m):
     bot.send_message(m.chat.id, f"Количество ошибок задано: {config[0]}")
@@ -39,6 +41,10 @@ def my_setting(m):
         bot.send_message(m.chat.id, "Искомое слово не заменяется на правильное")
     else:
         bot.send_message(m.chat.id, "Искомое слово заменяется на правильное")
+    if config[4]==True:
+        bot.send_message(m.chat.id, "Бот ищет искомое слово как часть другого")
+    else:
+        bot.send_message(m.chat.id, "Бот не ищет искомое слово как часть другого")
 @bot.message_handler(commands=["setting"])
 def setting(message):
     keyboard = telebot.types.InlineKeyboardMarkup()
@@ -50,12 +56,29 @@ def setting(message):
     keyboard.add(replacement)
     repair = telebot.types.InlineKeyboardButton(text='Заменять ли искомое слово с ошибкой на правильное', callback_data='repair')
     keyboard.add(repair)
+    part_of_word = telebot.types.InlineKeyboardButton(text='Искать ли искомое слово как часть другого',callback_data='part_of_word')
+    keyboard.add(part_of_word)
     bot.send_message(message.from_user.id, text='Выбери, что ты хочешь настроить:', reply_markup=keyboard)
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
     if call.data=='num_of_err':
         bot.send_message(call.message.chat.id, "Введите допустимое количество ошибок:")
         bot.register_next_step_handler(call.message, set_num_of_err)
+    elif call.data=='part_of_word':
+        part=telebot.types.InlineKeyboardMarkup()
+        part_yes=telebot.types.InlineKeyboardButton(text='Да', callback_data="part_yes")
+        part.add(part_yes)
+        part_no = telebot.types.InlineKeyboardButton(text='Нет', callback_data="part_no")
+        part.add(part_no)
+        bot.send_message(call.message.chat.id, text='Искать ли искомое слово как часть другого?',reply_markup=part)
+    # НАЧАЛО БЛОКА part_of_word
+    elif call.data=='part_yes':
+        config[4]=True
+        bot.send_message(call.message.chat.id,'Теперь бот ищет искомое слово как часть другого')
+    elif call.data=='part_no':
+        config[4] = False
+        bot.send_message(call.message.chat.id, 'Теперь бот не ищет искомое слово как часть другого')
+    # КОНЕЦ БЛОКА part_of_word
     elif call.data=='repair':
         dsa = telebot.types.InlineKeyboardMarkup()
         DA = telebot.types.InlineKeyboardButton(text='Да', callback_data="True_repair")
